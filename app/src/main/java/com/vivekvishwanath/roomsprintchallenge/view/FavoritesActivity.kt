@@ -11,23 +11,34 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.vivekvishwanath.roomsprintchallenge.App
 import com.vivekvishwanath.roomsprintchallenge.R
 import com.vivekvishwanath.roomsprintchallenge.model.FavoriteMovie
 import com.vivekvishwanath.roomsprintchallenge.model.MovieOverview
 import com.vivekvishwanath.roomsprintchallenge.viewmodel.FavoritesViewModel
+import com.vivekvishwanath.roomsprintchallenge.viewmodel.ViewModelProviderFactory
 import kotlinx.android.synthetic.main.activity_favorites.*
 import kotlinx.android.synthetic.main.movie_list_item.view.*
+import retrofit2.Retrofit
+import javax.inject.Inject
 
 class FavoritesActivity : AppCompatActivity() {
 
     private var favoriteMovies = hashMapOf<Int, FavoriteMovie>()
+
+    @Inject
+    lateinit var viewModelProviderFactory: ViewModelProviderFactory
+
+
     private var favoriteViewModel: FavoritesViewModel? = null
+    
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as App).appComponent.injectFavoritesActivity(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_favorites)
 
-        favoriteViewModel = ViewModelProviders.of(this).get(FavoritesViewModel::class.java)
+        favoriteViewModel = ViewModelProviders.of(this, viewModelProviderFactory).get(FavoritesViewModel::class.java)
 
         val favoritesAdapter = MovieListAdapter(favoriteMovies.values)
 

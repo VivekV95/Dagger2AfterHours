@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.vivekvishwanath.roomsprintchallenge.model.FavoriteMovie
 
-@Database(entities = [FavoriteMovie::class], version = 3)
+@Database(entities = [FavoriteMovie::class], version = 3, exportSchema = false)
 abstract class FavoriteMovieDatabase: RoomDatabase() {
     companion object{
         private var instance: FavoriteMovieDatabase? = null

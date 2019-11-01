@@ -12,29 +12,37 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.vivekvishwanath.roomsprintchallenge.App
 import com.vivekvishwanath.roomsprintchallenge.R
 import com.vivekvishwanath.roomsprintchallenge.model.FavoriteMovie
 import com.vivekvishwanath.roomsprintchallenge.model.MovieOverview
 import com.vivekvishwanath.roomsprintchallenge.viewmodel.SearchViewModel
+import com.vivekvishwanath.roomsprintchallenge.viewmodel.ViewModelProviderFactory
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.movie_list_item.view.*
+import retrofit2.Retrofit
+import javax.inject.Inject
 
 class SearchActivity : AppCompatActivity() {
 
     private val movies = mutableListOf<MovieOverview>()
     private val favoriteMovies = hashMapOf<Int, FavoriteMovie>()
-    private var searchViewModel: SearchViewModel? = null
 
+    @Inject
+    lateinit var viewModelProviderFactory: ViewModelProviderFactory
+
+    lateinit var viewModel: SearchViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as App).appComponent.injectSearchActivity(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        searchViewModel = ViewModelProviders.of(this).get(SearchViewModel::class.java)
+        viewModel = ViewModelProviders.of(this, viewModelProviderFactory).get(SearchViewModel::class.java)
 
         val movieListAdapter = MovieListAdapter(movies)
 
-        searchViewModel?.let { searchViewModel1 ->
+        viewModel?.let { searchViewModel1 ->
             searchViewModel1.getFavoriteMovies()
                 .observe(this, Observer<MutableList<FavoriteMovie>> {
                     favoriteMovies.clear()
@@ -59,7 +67,7 @@ class SearchActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(p0: String?): Boolean {
-                searchViewModel?.let { searchViewModel1 ->
+                viewModel?.let { searchViewModel1 ->
                     searchViewModel1.getMatchingMovies(p0!!)
                         .observe(this@SearchActivity, Observer<MutableList<MovieOverview>> {
                             movies.clear()
@@ -102,7 +110,7 @@ class SearchActivity : AppCompatActivity() {
             holder.itemView.movie_item_parent.setOnLongClickListener {
                 if (favoriteMovies.containsKey(movies[position].id)) {
                     favoriteMovies[movies[position].id]?.let { movie ->
-                        searchViewModel?.deleteMovie(movie)
+                        viewModel?.deleteMovie(movie)
                         notifyItemChanged(position)
                     }
                 } else {
@@ -113,7 +121,7 @@ class SearchActivity : AppCompatActivity() {
                         false,
                         movies[position].id
                     )
-                    searchViewModel?.insertMovie(movie)
+                    viewModel?.insertMovie(movie)
                     notifyItemChanged(position)
                 }
                 false

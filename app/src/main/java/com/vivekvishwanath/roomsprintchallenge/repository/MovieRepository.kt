@@ -5,23 +5,32 @@ import android.os.AsyncTask
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.vivekvishwanath.roomsprintchallenge.MovieInterface
-import com.vivekvishwanath.roomsprintchallenge.favoriteMovieDao
+import com.vivekvishwanath.roomsprintchallenge.database.FavoriteMovieDao
 import com.vivekvishwanath.roomsprintchallenge.model.FavoriteMovie
 import com.vivekvishwanath.roomsprintchallenge.model.MovieDBResponse
 import com.vivekvishwanath.roomsprintchallenge.model.MovieOverview
-import com.vivekvishwanath.roomsprintchallenge.retrofitInstance
+import com.vivekvishwanath.roomsprintchallenge.retrofit.MovieDBApiInterface
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
+import javax.inject.Provider
+import javax.inject.Singleton
 
-class MovieRepository : MovieInterface {
+@Singleton
+class MovieRepository (
+    private val movieService: MovieDBApiInterface,
+    private val favoriteMovieDao: FavoriteMovieDao,
+    private val insertMovieAsyncTask: Provider<InsertMovieAsyncTask>,
+    private val updateMovieAsyncTask: Provider<UpdateMovieAsyncTask>,
+    private val deleteMovieAsyncTask: Provider<DeleteMovieAsyncTask>) : MovieInterface {
 
     override fun getMatchingMovies(
         apiKey: String,
         query: String
     ): LiveData<MutableList<MovieOverview>> {
         val matchingMovies = MutableLiveData<MutableList<MovieOverview>>()
-        retrofitInstance
+        movieService
             .getMatchingMovies(apiKey, query)
             .enqueue(object : Callback<MovieDBResponse> {
                 override fun onFailure(call: Call<MovieDBResponse>, t: Throwable) {
@@ -48,49 +57,38 @@ class MovieRepository : MovieInterface {
     }
 
     override fun insertMovie(favoriteMovie: FavoriteMovie) {
-        InsertMovieAsyncTask().execute(favoriteMovie)
+        insertMovieAsyncTask.get().execute(favoriteMovie)
     }
 
     override fun updateMovie(favoriteMovie: FavoriteMovie) {
-        UpdateMovieAsyncTask().execute(favoriteMovie)
+        updateMovieAsyncTask.get().execute(favoriteMovie)
     }
 
     override fun deleteMovie(favoriteMovie: FavoriteMovie) {
-        DeleteMovieAsyncTask().execute(favoriteMovie)
+        deleteMovieAsyncTask.get().execute(favoriteMovie)
     }
+}
 
-    companion object {
-        class FavoriteMoviesAsyncTask(
-            private val favoriteMovies: MutableLiveData<MutableList<FavoriteMovie>>
-        ) : AsyncTask<Unit, Unit, Unit>() {
-
-            override fun doInBackground(vararg p0: Unit?) {
-                favoriteMovies.postValue(favoriteMovieDao.getFavoriteMovies().value)
-            }
+class InsertMovieAsyncTask(private val favoriteMovieDao: FavoriteMovieDao): AsyncTask<FavoriteMovie, Unit, Unit>() {
+    override fun doInBackground(vararg p0: FavoriteMovie?) {
+        p0[0]?.let {
+            favoriteMovieDao.insertMovie(it)
         }
+    }
+}
 
-        class InsertMovieAsyncTask(): AsyncTask<FavoriteMovie, Unit, Unit>() {
-            override fun doInBackground(vararg p0: FavoriteMovie?) {
-                p0[0]?.let {
-                    favoriteMovieDao.insertMovie(it)
-                }
-            }
+class UpdateMovieAsyncTask (private val favoriteMovieDao: FavoriteMovieDao): AsyncTask<FavoriteMovie, Unit, Unit>() {
+    override fun doInBackground(vararg p0: FavoriteMovie?) {
+        p0[0]?.let {
+            favoriteMovieDao.updateMovie(it)
         }
+    }
+}
 
-        class UpdateMovieAsyncTask(): AsyncTask<FavoriteMovie, Unit, Unit>() {
-            override fun doInBackground(vararg p0: FavoriteMovie?) {
-                p0[0]?.let {
-                    favoriteMovieDao.updateMovie(it)
-                }
-            }
-        }
-
-        class DeleteMovieAsyncTask(): AsyncTask<FavoriteMovie, Unit, Unit>() {
-            override fun doInBackground(vararg p0: FavoriteMovie?) {
-                p0[0]?.let {
-                    favoriteMovieDao.deleteMovie(it)
-                }
-            }
+class DeleteMovieAsyncTask(private val favoriteMovieDao: FavoriteMovieDao): AsyncTask<FavoriteMovie, Unit, Unit>() {
+    override fun doInBackground(vararg p0: FavoriteMovie?) {
+        p0[0]?.let {
+            favoriteMovieDao.deleteMovie(it)
         }
     }
 }
