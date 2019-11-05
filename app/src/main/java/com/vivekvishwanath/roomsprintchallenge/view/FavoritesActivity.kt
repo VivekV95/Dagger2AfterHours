@@ -29,9 +29,7 @@ class FavoritesActivity : AppCompatActivity() {
     @Inject
     lateinit var viewModelProviderFactory: ViewModelProviderFactory
 
-
     private var favoriteViewModel: FavoritesViewModel? = null
-    
 
     override fun onCreate(savedInstanceState: Bundle?) {
         (application as App).appComponent.injectFavoritesActivity(this)

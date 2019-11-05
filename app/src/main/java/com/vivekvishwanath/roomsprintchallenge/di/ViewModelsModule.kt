@@ -13,20 +13,18 @@ import javax.inject.Singleton
 @Module
 abstract class ViewModelsModule {
 
-    @Singleton
     @Binds
     @IntoMap
     @ViewModelKey(SearchViewModel::class)
     abstract fun bindsSearchViewModel(viewModel: SearchViewModel): ViewModel
 
-    @Singleton
     @Binds
     @IntoMap
     @ViewModelKey(FavoritesViewModel::class)
     abstract fun bindsFavoritesViewModel(viewModel: FavoritesViewModel): ViewModel
 
-//    @Singleton
-//    @Binds
-//    abstract fun bindViewModelFactory(viewModelProviderFactory: ViewModelProviderFactory): ViewModelProvider.Factory
+    @Singleton
+    @Binds
+    abstract fun bindViewModelFactory(viewModelProviderFactory: ViewModelProviderFactory): ViewModelProvider.Factory
 
 }
